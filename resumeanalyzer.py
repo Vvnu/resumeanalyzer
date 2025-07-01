@@ -33,7 +33,7 @@ def setup_gemini():
         st.markdown("""
         Please provide your Google Gemini API key. You can:
         1. Set it as an environment variable: `GEMINI_API_KEY=your_key_here`
-        2. Create a `.streamlit/secrets.toml` file with: `GEMINI_API_KEY = "your_key_here"`
+        2. Create a `.streamlit/secrets.toml` file with: `GEMINI_API_KEY = \"your_key_here\"`
         3. Enter it in the sidebar (not recommended for production)
         
         Get your API key from: https://makersuite.google.com/app/apikey
@@ -48,10 +48,10 @@ def setup_gemini():
         if not api_key:
             st.stop()
     try:
-        # Use correct API for google genai
-        from google import genai
-        client = genai.Client(api_key=api_key)
-        return client
+        import google.generativeai as genai
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        return model
     except Exception as e:
         st.error(f"Failed to initialize Gemini: {str(e)}")
         st.stop()
