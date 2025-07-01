@@ -48,9 +48,8 @@ def setup_gemini():
         if not api_key:
             st.stop()
     try:
-        import google.generativeai as genai
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        genai.configure(api_key=api_key)  # type: ignore[reportPrivateImportUsage]
+        model = genai.GenerativeModel("gemini-1.5-flash")  # type: ignore[reportPrivateImportUsage]
         return model
     except Exception as e:
         st.error(f"Failed to initialize Gemini: {str(e)}")
@@ -334,11 +333,10 @@ def main():
             if st.button(f"🔍 Analyze Resume", key=f"analyze_{idx}", type="primary"):
                 with st.spinner("🤖 AI is analyzing your resume..."):
                     try:
-                        analysis_response = model.models.generate_content(model="gemini-1.5-flash", contents=build_analysis_prompt(resume_text))
+                        analysis_response = model.generate_content(build_analysis_prompt(resume_text))
                         st.session_state[analysis_key] = analysis_response.text
                     except Exception as e:
                         st.error(f"Analysis failed: {str(e)}")
-                        continue
             
             # Show analysis if available
             if analysis_key in st.session_state:
@@ -388,8 +386,11 @@ def main():
                         
                         with st.spinner("🎯 Creating your enhanced resume..."):
                             try:
-                                enhanced_response = model.models.generate_content(model="gemini-1.5-flash", contents=build_rewrite_prompt(resume_text, extra_info, style_preferences))
-                                enhanced_resume = enhanced_response.text or ""
+                                if model is None:
+                                    st.error("Gemini API client not initialized. Check your API key.")
+                                else:
+                                    enhanced_response = model.generate_content(build_rewrite_prompt(resume_text, extra_info, style_preferences))
+                                    enhanced_resume = enhanced_response.text or ""
                                 
                                 # Create DOCX
                                 docx_bytes = create_docx_from_text(enhanced_resume)
